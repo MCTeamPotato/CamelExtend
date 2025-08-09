@@ -19,13 +19,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CactusData extends SavedData {
+public class CamelEdibleData extends SavedData {
     public static final String DATA_NAME = "camelextend_cactus_data";
 
-    private final Map<ResourceLocation, Map<Long, Set<Long>>> cactusPositions = new ConcurrentHashMap<>();
+    private final Map<ResourceLocation, Map<Long, Set<Long>>> camelEdibleBlocks = new ConcurrentHashMap<>();
 
-    public static CactusData load(CompoundTag nbt) {
-        CactusData data = new CactusData();
+    public static CamelEdibleData load(CompoundTag nbt) {
+        CamelEdibleData data = new CamelEdibleData();
 
         for (String dimKey : nbt.getAllKeys()) {
             CompoundTag dimTag = nbt.getCompound(dimKey);
@@ -44,7 +44,7 @@ public class CactusData extends SavedData {
             }
             ResourceLocation dimRes = ResourceLocation.tryParse(dimKey);
             if (dimRes != null) {
-                data.cactusPositions.put(dimRes, chunkMap);
+                data.camelEdibleBlocks.put(dimRes, chunkMap);
             }
         }
 
@@ -53,7 +53,7 @@ public class CactusData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag nbt) {
-        for (Map.Entry<ResourceLocation, Map<Long, Set<Long>>> dimEntry : cactusPositions.entrySet()) {
+        for (Map.Entry<ResourceLocation, Map<Long, Set<Long>>> dimEntry : camelEdibleBlocks.entrySet()) {
             CompoundTag dimTag = new CompoundTag();
             for (Map.Entry<Long, Set<Long>> chunkEntry : dimEntry.getValue().entrySet()) {
                 ListTag posList = new ListTag();
@@ -67,13 +67,13 @@ public class CactusData extends SavedData {
         return nbt;
     }
 
-    public static CactusData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(CactusData::load, CactusData::new, DATA_NAME);
+    public static CamelEdibleData get(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(CamelEdibleData::load, CamelEdibleData::new, DATA_NAME);
     }
 
-    public void addCactus(ServerLevel level, BlockPos pos) {
+    public void addCamelEdible(ServerLevel level, BlockPos pos) {
         ResourceLocation dim = level.dimension().location();
-        Map<Long, Set<Long>> chunkMap = cactusPositions.computeIfAbsent(dim, k -> new ConcurrentHashMap<>());
+        Map<Long, Set<Long>> chunkMap = camelEdibleBlocks.computeIfAbsent(dim, k -> new ConcurrentHashMap<>());
         long chunkKey = ChunkPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
         Set<Long> posSet = chunkMap.computeIfAbsent(chunkKey, k -> ConcurrentHashMap.newKeySet());
         if (posSet.add(pos.asLong())) {
@@ -81,9 +81,9 @@ public class CactusData extends SavedData {
         }
     }
 
-    public void removeCactus(ServerLevel level, BlockPos pos) {
+    public void removeCamelEdible(ServerLevel level, BlockPos pos) {
         ResourceLocation dim = level.dimension().location();
-        Map<Long, Set<Long>> chunkMap = cactusPositions.get(dim);
+        Map<Long, Set<Long>> chunkMap = camelEdibleBlocks.get(dim);
         if (chunkMap == null) return;
         long chunkKey = ChunkPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
         Set<Long> posSet = chunkMap.get(chunkKey);
@@ -93,7 +93,7 @@ public class CactusData extends SavedData {
         }
     }
 
-    public Map<ResourceLocation, Map<Long, Set<Long>>> getAllCactusPositions() {
-        return cactusPositions;
+    public Map<ResourceLocation, Map<Long, Set<Long>>> getAllCamelEdibleBlocks() {
+        return camelEdibleBlocks;
     }
 }

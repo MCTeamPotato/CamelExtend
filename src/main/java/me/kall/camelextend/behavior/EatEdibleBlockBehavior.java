@@ -1,7 +1,7 @@
 package me.kall.camelextend.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import me.kall.camelextend.data.CactusData;
+import me.kall.camelextend.data.CamelEdibleData;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -21,21 +21,21 @@ import java.util.Set;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class EatCactusBehavior extends Behavior<Camel> {
-    private BlockPos targetCactusPos;
+public class EatEdibleBlockBehavior extends Behavior<Camel> {
+    private BlockPos target;
     private WalkTarget walkTarget;
 
-    public EatCactusBehavior() {
+    public EatEdibleBlockBehavior() {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), 400, 600);
     }
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, Camel mob) {
         if (mob.getHealth() >= mob.getMaxHealth()) return false;
-        CactusData data = CactusData.get(level);
+        CamelEdibleData data = CamelEdibleData.get(level);
         ResourceLocation dim = level.dimension().location();
 
-        Map<Long, Set<Long>> chunkMap = data.getAllCactusPositions().get(dim);
+        Map<Long, Set<Long>> chunkMap = data.getAllCamelEdibleBlocks().get(dim);
         if (chunkMap == null) return false;
 
         BlockPos mobPos = mob.blockPosition();
@@ -64,7 +64,7 @@ public class EatCactusBehavior extends Behavior<Camel> {
         }
 
         if (nearest != null) {
-            this.targetCactusPos = nearest;
+            this.target = nearest;
             return true;
         }
 
@@ -73,42 +73,42 @@ public class EatCactusBehavior extends Behavior<Camel> {
 
     @Override
     protected void start(ServerLevel level, Camel mob, long gameTime) {
-        if (this.targetCactusPos == null) return;
-        this.walkTarget = new WalkTarget(this.targetCactusPos, 1.5F, 1);
+        if (this.target == null) return;
+        this.walkTarget = new WalkTarget(this.target, 1.5F, 1);
         mob.getBrain().setMemory(MemoryModuleType.WALK_TARGET, this.walkTarget);
     }
 
     @Override
     protected void tick(ServerLevel level, Camel mob, long gameTime) {
-        if (this.targetCactusPos == null || this.walkTarget == null) return;
+        if (this.target == null || this.walkTarget == null) return;
 
         Brain<?> brain = mob.getBrain();
         brain.setMemory(MemoryModuleType.WALK_TARGET, this.walkTarget);
-        double distSqr = this.targetCactusPos.distToCenterSqr(mob.getX(), mob.getY(), mob.getZ());
+        double distSqr = this.target.distToCenterSqr(mob.getX(), mob.getY(), mob.getZ());
 
         if (distSqr < 8.0F) {
-            eatCactus(level, mob, targetCactusPos);
-            CactusData.get(level).removeCactus(level, targetCactusPos);
+            eat(level, mob, target);
+            CamelEdibleData.get(level).removeCamelEdible(level, target);
 
             brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-            this.targetCactusPos = null;
+            this.target = null;
             this.walkTarget = null;
         }
     }
 
     @Override
     protected boolean canStillUse(ServerLevel level, Camel mob, long gameTime) {
-        return this.targetCactusPos != null;
+        return this.target != null;
     }
 
-    private void eatCactus(ServerLevel level, Camel mob, BlockPos pos) {
+    private void eat(ServerLevel level, Camel mob, BlockPos pos) {
         mob.heal(2.0F);
         level.destroyBlock(pos, false, mob);
     }
 
     @Override
     protected void stop(ServerLevel level, Camel mob, long gameTime) {
-        this.targetCactusPos = null;
+        this.target = null;
         this.walkTarget = null;
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
     }
