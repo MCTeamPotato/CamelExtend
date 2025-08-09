@@ -1,0 +1,13 @@
+modLoader = "javafml"
+loaderVersion = "[36,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "camelextend"
+version = "${version}"
+displayName = "CamelExtend"
+authors = "Kall"
+description = '''
+'''
+#logoFile = ""
