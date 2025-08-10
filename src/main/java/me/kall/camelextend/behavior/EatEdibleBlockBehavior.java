@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.level.ChunkPos;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
@@ -25,6 +26,15 @@ public class EatEdibleBlockBehavior extends Behavior<Camel> {
     private BlockPos target;
     private WalkTarget walkTarget;
 
+    private static final int[] SELF_CHUNK_X = {0};
+    private static final int[] SELF_CHUNK_Z = {0};
+
+    private static final int[] ORTHOGONAL_CHUNK_X = {0, 1, 0, -1};
+    private static final int[] ORTHOGONAL_CHUNK_Z = {-1, 0, 1, 0};
+
+    private static final int[] DIAGONAL_CHUNK_X = {1, 1, -1, -1};
+    private static final int[] DIAGONAL_CHUNK_Z = {-1, 1, 1, -1};
+
     public EatEdibleBlockBehavior() {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), 400, 600);
     }
@@ -32,43 +42,49 @@ public class EatEdibleBlockBehavior extends Behavior<Camel> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, Camel mob) {
         if (mob.getHealth() >= mob.getMaxHealth()) return false;
+
         CamelEdibleData data = CamelEdibleData.get(level);
         ResourceLocation dim = level.dimension().location();
-
         Map<Long, Set<Long>> chunkMap = data.getAllCamelEdibleBlocks().get(dim);
-        if (chunkMap == null) return false;
+        if (chunkMap == null || chunkMap.isEmpty()) return false;
 
         BlockPos mobPos = mob.blockPosition();
+        int baseSectionX = SectionPos.blockToSectionCoord(mobPos.getX());
+        int baseSectionZ = SectionPos.blockToSectionCoord(mobPos.getZ());
 
-        BlockPos nearest = null;
-        double nearestDistSqr = Double.MAX_VALUE;
-
-        int sectionX = SectionPos.blockToSectionCoord(mobPos.getX());
-        int sectionZ = SectionPos.blockToSectionCoord(mobPos.getZ());
-
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                long chunkKey = ChunkPos.asLong(sectionX + dx, sectionZ + dz);
-                Set<Long> positions = chunkMap.get(chunkKey);
-                if (positions == null) continue;
-
-                for (long posLong : positions) {
-                    BlockPos cactusPos = BlockPos.of(posLong);
-                    double distSqr = cactusPos.distToCenterSqr(mobPos.getX(), mobPos.getY(), mobPos.getZ());
-                    if (distSqr < nearestDistSqr) {
-                        nearest = cactusPos;
-                        nearestDistSqr = distSqr;
-                    }
-                }
-            }
+        BlockPos found = searchChunkLayer(chunkMap, baseSectionX, baseSectionZ, SELF_CHUNK_X, SELF_CHUNK_Z);
+        if (found != null) {
+            this.target = found;
+            return true;
         }
 
-        if (nearest != null) {
-            this.target = nearest;
+        found = searchChunkLayer(chunkMap, baseSectionX, baseSectionZ, ORTHOGONAL_CHUNK_X, ORTHOGONAL_CHUNK_Z);
+        if (found != null) {
+            this.target = found;
+            return true;
+        }
+
+        found = searchChunkLayer(chunkMap, baseSectionX, baseSectionZ, DIAGONAL_CHUNK_X, DIAGONAL_CHUNK_Z);
+        if (found != null) {
+            this.target = found;
             return true;
         }
 
         return false;
+    }
+
+    private @Nullable BlockPos searchChunkLayer(Map<Long, Set<Long>> chunkMap, int baseX, int baseZ, int[] xOffsets, int[] zOffsets) {
+        for (int i = 0; i < xOffsets.length; i++) {
+            int chunkX = baseX + xOffsets[i];
+            int chunkZ = baseZ + zOffsets[i];
+            long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+
+            Set<Long> positions = chunkMap.get(chunkKey);
+            if (positions != null && !positions.isEmpty()) {
+                return BlockPos.of(positions.iterator().next());
+            }
+        }
+        return null;
     }
 
     @Override
