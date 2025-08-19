@@ -143,7 +143,7 @@ public class JsonConfig {
     }
 
     public <T> Stream<T> getStream(String key, @NotNull Class<T> valueType) {
-        return StreamSupport.stream(((JsonArray) this.configMap.get(key)).spliterator(), false).map(valueType::cast);
+        return StreamSupport.stream(this.configMap.get(key).getAsJsonArray().spliterator(), false).map(element -> gson.fromJson(element, valueType));
     }
 
     public <T> List<T> getList(String key, @NotNull Class<T> valueType) {

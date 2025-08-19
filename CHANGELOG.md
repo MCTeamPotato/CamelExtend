@@ -1,2 +1,2 @@
-# 1.0.1
-Further optimize edible block detection.
+# 1.0.2
+Fix ClassCastException
