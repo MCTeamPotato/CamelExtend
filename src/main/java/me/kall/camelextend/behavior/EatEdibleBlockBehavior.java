@@ -42,6 +42,7 @@ public class EatEdibleBlockBehavior extends Behavior<Camel> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, Camel mob) {
         if (mob.getHealth() >= mob.getMaxHealth()) return false;
+        if (mob.isPanicking()) return false;
 
         CamelEdibleData data = CamelEdibleData.get(level);
         ResourceLocation dim = level.dimension().location();
