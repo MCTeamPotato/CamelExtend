@@ -17,9 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(CamelAi.class)
 public abstract class CamelAiMixin {
     @SuppressWarnings("unchecked")
-    @Redirect(method = "initIdleActivity", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableList;of(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lcom/google/common/collect/ImmutableList;", remap = false))
-    private static <E> @NotNull ImmutableList<E> init(E e1, E e2, E e3, E e4, E e5, E e6) {
-        return ImmutableList.of((E) Pair.of(0, new EatEdibleBlockBehavior()), e1, e2, e3, e4, e5, e6);
+    @Redirect(method = "initIdleActivity", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableList;of(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lcom/google/common/collect/ImmutableList;", remap = false))
+    private static <E> @NotNull ImmutableList<E> init(E e1, E e2, E e3, E e4, E e5) {
+        return ImmutableList.of((E) Pair.of(0, new EatEdibleBlockBehavior()), e1, e2, e3, e4, e5);
     }
 
     @Mixin(CamelAi.RandomSitting.class)
