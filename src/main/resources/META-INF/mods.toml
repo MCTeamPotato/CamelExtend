@@ -11,3 +11,10 @@ authors = "Kall"
 description = '''
 '''
 #logoFile = ""
+
+[[dependencies.camelextend]]
+modId="duplicationless"
+mandatory=true
+versionRange="[1.0.5,)"
+ordering="NONE"
+side="BOTH"

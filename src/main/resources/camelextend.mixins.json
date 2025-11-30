@@ -6,16 +6,13 @@
     "conformVisibility": false
   },
   "minVersion": "0.8",
-  "client": [
-  ],
-  "mixins": [
-    "BlockMixin",
-    "CamelAiMixin",
-    "CamelMixin",
-    "LivingEntityMixin",
-    "ServerLevelMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+    "CamelAiMixin",
+    "CamelAiMixin$RandomSittingMixin",
+    "dmg.CamelMixin",
+    "dmg.LivingEntityMixin"
+  ]
 }

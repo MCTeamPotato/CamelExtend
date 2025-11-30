@@ -1,4 +1,4 @@
-package me.kall.camelextend.mixin;
+package me.kall.camelextend.mixin.dmg;
 
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
