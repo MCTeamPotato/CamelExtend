@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Set;
 
 @ParametersAreNonnullByDefault
 public class EatEdibleBlockBehavior extends Behavior<Camel> {
@@ -36,10 +37,10 @@ public class EatEdibleBlockBehavior extends Behavior<Camel> {
         ChunkData<Long, BlockState> data = CamelEdibleBlocks.get(level);
         BlockPos mobPos = mob.blockPosition();
         long chunk = Positions.toChunk(mobPos);
-        long target = data.pick(level, chunk).orElse(Long.MIN_VALUE);
 
-        if (target != Long.MIN_VALUE) {
-            this.target = BlockPos.of(target);
+        Set<Long> current = data.viewChunk(level, chunk);
+        if (!current.isEmpty()) {
+            this.target = BlockPos.of(Positions.nearestOne(current, mobPos));
             return true;
         }
 
@@ -49,9 +50,9 @@ public class EatEdibleBlockBehavior extends Behavior<Camel> {
             for(int x = -radius; x <= radius; ++x) {
                 for(int z = -radius; z <= radius; ++z) {
                     if (x == 0 && z == 0) continue;
-                    target = data.pick(level, ChunkPos.asLong(x + chunkX, z + chunkZ)).orElse(Long.MIN_VALUE);
-                    if (target != Long.MIN_VALUE) {
-                        this.target = BlockPos.of(target);
+                    current = data.viewChunk(level, ChunkPos.asLong(x + chunkX, z + chunkZ));
+                    if (!current.isEmpty()) {
+                        this.target = BlockPos.of(Positions.nearestOne(current, mobPos));
                         return true;
                     }
                 }
